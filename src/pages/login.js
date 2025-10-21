@@ -1,16 +1,20 @@
 // Login.js
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
 
-export default function Login({ navigation }) {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  
 
-  function handleLogin() {
-    console.log("Email:", email);
-    console.log("Senha:", password);
-    navigation.navigate("Main"); // nome igual ao do Routes.js
-  }
+  const handleLogin = () => {
+    if (!email === "" || !password === "") {
+      Alert.alert("E-mail ou senha inválidos");
+    } else {
+      navigation.navigate("Main");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -54,6 +58,7 @@ export default function Login({ navigation }) {
       </View>
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({
@@ -62,10 +67,12 @@ const styles = StyleSheet.create({
   iconCircle: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#e0edff", justifyContent: "center", alignItems: "center", marginBottom: 15 },
   iconText: { fontSize: 28, color: "#007BFF" },
   title: { fontSize: 22, fontWeight: "bold", marginBottom: 4, color: "#111827" },
-  subtitle: { fontSize: 13, color: "#6b7280", textAlign: "center", marginBottom: 20 },
+  subtitle: { fontSize: 13, color: "#6b7280", textAlign: "center", marginBottom: 20, marginTop: 10 },
   input: { width: "100%", backgroundColor: "#f9fafb", paddingVertical: 12, paddingHorizontal: 14, borderRadius: 6, borderColor: "#d1d5db", borderWidth: 1, marginBottom: 12, fontSize: 16, color: "#111827" },
-  button: { backgroundColor: "#007BFF", paddingVertical: 12, borderRadius: 6, alignItems: "center", width: "100%", marginTop: 4, marginBottom: 14 },
+  button: { backgroundColor: "#007BFF", paddingVertical: 12, borderRadius: 6, alignItems: "center", width: "100%", marginTop: 50, marginBottom: 14 },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   link: { color: "#007BFF", fontSize: 14 },
   linkSecondary: { color: "#6b7280", fontSize: 13, marginTop: 8 },
 });
+
+export default Login;
