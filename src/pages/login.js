@@ -1,18 +1,16 @@
 // Login.js
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
 
-const Login = () => {
+const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
 
-  const handleLogin = () => {
-    if (!email === "" || !password === "") {
+   const handleLogin = () => {
+    if (email.trim() === "" || password.trim() === "") {
       Alert.alert("E-mail ou senha inválidos");
-    } else {
-      navigation.navigate("Main");
+      return; // impede de continuar
     }
   };
 

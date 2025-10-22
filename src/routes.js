@@ -6,6 +6,8 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Login from "./pages/login";
 import Cadastro from "./pages/cadastro";
 import Main from "./pages/main"; // pode trocar se sua tela principal tiver outro nome
+import ResetPassword from "./pages/resetpassword";
+
 
 const Stack = createStackNavigator();
 
@@ -27,6 +29,11 @@ export default function Routes() {
           name="Main"
           component={Main}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ResetPassword"
+          component={ResetPassword}
+          options={{ title: "Recuperar Senha" }}
         />
       </Stack.Navigator>
     </NavigationContainer>
