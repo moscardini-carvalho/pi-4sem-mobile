@@ -1,124 +1,88 @@
-import React, { Component } from "react";
-import { Keyboard, ActivityIndicator } from "react-native";
-import Icon from "@expo/vector-icons/MaterialIcons";
-import api from "../services/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  Container,
-  Form,
-  Input,
-  SubmitButton,
-  List,
-  User,
-  Avatar,
-  Name,
-  Bio,
-  ProfileButton,
-  ProfileButtonText,
-} from "../styles";
-export default class Main extends Component {
-  state = {
-    newUser: "",
-    users: [],
-    loading: false,
-  };
+import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, Alert } from "react-native";
+import { supabase } from "../lib/supabase";
 
-  async componentDidMount() {
-    const users = await AsyncStorage.getItem("users");
-    if (users) {
-      this.setState({ users: JSON.parse(users) });
-    }
+export default function Main({ navigation }) {
+  const [dispositivos, setDispositivos] = useState([]);
+
+  async function carregarDispositivos() {
+    const { data, error } = await supabase.from("dispositivos").select("*").order("created_at", { ascending: false });
+    if (error) Alert.alert("Erro", error.message);
+    else setDispositivos(data);
   }
 
-  componentDidUpdate(_, prevState) {
-    const { users } = this.state;
-    if (prevState.users !== users) {
-      AsyncStorage.setItem("users", JSON.stringify(users));
-    }
+  async function deletarDispositivo(id) {
+    const { error } = await supabase.from("dispositivos").delete().eq("id", id);
+    if (error) Alert.alert("Erro", error.message);
+    else carregarDispositivos();
   }
 
-  handleAddUser = async () => {
-    try {
-      const { users, newUser } = this.state;
-      this.setState({ loading: true });
-      const response = await api.get(`/users/${newUser}`);
-      if (users.find((user) => user.login === response.data.login)) {
-        alert("Usuário já adicionado!");
-        this.setState({ loading: false });
-        return;
-      }
-      const data = {
-        name: response.data.name,
-        login: response.data.login,
-        bio: response.data.bio,
-        avatar: response.data.avatar_url,
-      };
-      console.log(data);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", carregarDispositivos);
+    return unsubscribe;
+  }, [navigation]);
 
-      this.setState({
-        users: [...users, data],
-        newUser: "",
-        loading: false,
-      });
-      Keyboard.dismiss();
-    } catch (error) {
-      alert("Usuário não encontrado!");
-      this.setState({ loading: false });
-    }
-  };
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Dispositivos</Text>
+        <Text style={styles.subtitle}>Gerencie seus relógios de energia IoT</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate("CadastroDispositivo")}
+        >
+          <Text style={styles.addButtonText}>Cadastrar Relógio</Text>
+        </TouchableOpacity>
+      </View>
 
-  render() {
-    const { users, newUser, loading } = this.state;
-    return (
-      <Container>
-        <Form>
-          <Input
-            autoCorrect={false}
-            autoCapitalize="none"
-            placeholder="Adicionar usuário"
-            value={newUser}
-            onChangeText={(text) => this.setState({ newUser: text })}
-            returnKeyType="send"
-            onSubmitEditing={this.handleAddUser}
-          />
-          <SubmitButton loading={loading} onPress={this.handleAddUser}>
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Icon name="add" size={20} color="#fff" />
-            )}
-          </SubmitButton>
-        </Form>
-        <List
-          showsVerticalScrollIndicator={false}
-          data={users}
-          keyExtractor={(user) => user.login}
-          renderItem={({ item }) => (
-            <User>
-              <Avatar source={{ uri: item.avatar }} />
-              <Name>{item.name}</Name>
-              <Bio>{item.bio}</Bio>
-              <ProfileButton
-                onPress={() => {
-                  this.props.navigation.navigate("user", { user: item });
-                }}
-              >
-                <ProfileButtonText>Ver perfil</ProfileButtonText>
-              </ProfileButton>
-              <ProfileButton
-                onPress={() => {
-                  this.setState({
-                    users: users.filter((user) => user.login !== item.login),
-                  });
-                }}
-                style={{ backgroundColor: "#FFC0CB" }}
-              >
-                <ProfileButtonText>Remover</ProfileButtonText>
-              </ProfileButton>
-            </User>
-          )}
-        />
-      </Container>
-    );
-  }
+      <FlatList
+        data={dispositivos}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <View>
+              <Text style={styles.deviceName}>⚡ {item.nome}</Text>
+              <Text style={styles.status}>{item.status}</Text>
+              <Text style={styles.address}>{item.endereco}</Text>
+            </View>
+            <TouchableOpacity onPress={() => deletarDispositivo(item.id)}>
+              <Text style={{ color: "red", fontSize: 18 }}>🗑</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20, backgroundColor: "#f9fafb" },
+  header: { marginBottom: 20 },
+  title: { fontSize: 22, fontWeight: "bold", color: "#111", marginTop: 50 },
+  subtitle: { fontSize: 14, color: "#666", marginBottom: 10,marginTop: 15 },
+  addButton: {
+    alignSelf: "center",
+    backgroundColor: "#007BFF",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 6,
+    marginTop: 50
+  },
+  addButtonText: { color: "#fff", fontWeight: "bold" },
+  card: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  deviceName: { fontSize: 16, fontWeight: "bold", color: "#333" },
+  status: { color: "green", fontWeight: "500", marginBottom: 4 },
+  address: { color: "#777", fontSize: 13 },
+});

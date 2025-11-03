@@ -1,17 +1,18 @@
-// Login.js
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
 
-   const handleLogin = () => {
+  const handleLogin = () => {
     if (email.trim() === "" || password.trim() === "") {
       Alert.alert("E-mail ou senha inválidos");
-      return; // impede de continuar
+      return;
     }
+
+    // Só navega se os campos estiverem preenchidos
+    navigation.navigate("Main");
   };
 
   return (
@@ -46,7 +47,6 @@ const Login = ({ navigation }) => {
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
 
-        {/* Links */}
         <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
           <Text style={styles.link}>Não tem uma conta? Cadastre-se</Text>
         </TouchableOpacity>
@@ -56,8 +56,7 @@ const Login = ({ navigation }) => {
       </View>
     </View>
   );
-
-}
+};
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f3f6fb", paddingHorizontal: 20 },

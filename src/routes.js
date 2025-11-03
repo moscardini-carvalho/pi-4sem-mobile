@@ -7,18 +7,22 @@ import Login from "./pages/login";
 import Cadastro from "./pages/cadastro";
 import Main from "./pages/main"; // pode trocar se sua tela principal tiver outro nome
 import ResetPassword from "./pages/resetpassword";
-
+import Faturas from "./pages/faturas"; // adicione aqui
+import CadastroDispositivo from "./pages/cadastroDispositivo";
+import CadastroFatura from "./pages/cadastroFatura";
 
 const Stack = createStackNavigator();
 
 export default function Routes() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
+      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Main" component={Main} />
         <Stack.Screen
-          name="Login"
-          component={Login}
-          options={{ headerShown: false }}
+          name="Faturas"
+          component={Faturas}
+          options={{ title: "Faturas de Energia" }}
         />
         <Stack.Screen
           name="Cadastro"
@@ -26,15 +30,21 @@ export default function Routes() {
           options={{ title: "Cadastrar Usuário" }}
         />
         <Stack.Screen
-          name="Main"
-          component={Main}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
           name="ResetPassword"
           component={ResetPassword}
           options={{ title: "Recuperar Senha" }}
         />
+        <Stack.Screen
+          name="CadastroFatura"
+          component={CadastroFatura}
+          options={{ presentation: "modal", headerShown: false }}
+        />
+        <Stack.Screen
+          name="CadastroDispositivo"
+          component={CadastroDispositivo}
+          options={{ presentation: "modal", headerShown: false }}
+        />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
