@@ -1,39 +1,119 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { supabase } from "../lib/supabase";
 
-export default function CadastroDispositivo({ navigation }) {
+export default function Cadastro({ navigation }) {
   const [nome, setNome] = useState("");
-  const [codigo, setCodigo] = useState("");
-  const [endereco, setEndereco] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleCadastro = async () => {
+    if (!nome.trim() || !email.trim() || !senha.trim()) {
+      Alert.alert("Erro", "Preencha todos os campos!");
+      return;
+    }
+
+    if (senha.length < 6) {
+      Alert.alert("Erro", "Senha deve ter no mínimo 6 caracteres!");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password: senha,
+      });
+
+      if (error) {
+        Alert.alert("Erro", error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .insert([
+            {
+              id: data.user.id,
+              nome: nome.trim(),
+              email: email.trim().toLowerCase(),
+            },
+          ]);
+
+        if (profileError) {
+          Alert.alert("Erro", profileError.message);
+          setLoading(false);
+          return;
+        }
+
+        Alert.alert(
+          "Sucesso!",
+          "Cadastro realizado! Verifique seu e-mail para confirmar.",
+          [
+            {
+              text: "OK",
+              onPress: () => navigation.navigate("Login"),
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      Alert.alert("Erro", "Erro inesperado");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.modal}>
-        <Text style={styles.title}>Cadastrar Dispositivo</Text>
+      <Text style={styles.title}>Cadastro</Text>
+      
+      <TextInput
+        style={styles.input}
+        placeholder="Nome"
+        value={nome}
+        onChangeText={setNome}
+        editable={!loading}
+      />
+      
+      <TextInput
+        style={styles.input}
+        placeholder="E-mail"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        editable={!loading}
+      />
+      
+      <TextInput
+        style={styles.input}
+        placeholder="Senha (mínimo 6 caracteres)"
+        value={senha}
+        onChangeText={setSenha}
+        secureTextEntry
+        editable={!loading}
+      />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Nome do Dispositivo"
-          value={nome}
-          onChangeText={setNome}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Código de Identificação"
-          value={codigo}
-          onChangeText={setCodigo}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Endereço de Instalação"
-          value={endereco}
-          onChangeText={setEndereco}
-        />
+      <TouchableOpacity 
+        style={[styles.button, loading && styles.buttonDisabled]}
+        onPress={handleCadastro}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Cadastrar</Text>
+        )}
+      </TouchableOpacity>
 
-        <TouchableOpacity style={styles.saveButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.saveButtonText}>Salvar</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+        <Text style={styles.linkText}>Voltar para Login</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -41,33 +121,49 @@ export default function CadastroDispositivo({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "center",
     alignItems: "center",
-  },
-  modal: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
     padding: 20,
-    width: "90%",
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 5,
+    backgroundColor: "#f3f6fb",
   },
-  title: { fontSize: 20, fontWeight: "bold", marginBottom: 15, textAlign: "center" },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 30,
+    color: "#111827",
+  },
   input: {
+    width: "100%",
+    maxWidth: 300,
+    height: 50,
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 6,
+    borderRadius: 8,
     padding: 10,
-    marginBottom: 10,
+    marginBottom: 15,
+    backgroundColor: "#fff",
   },
-  saveButton: {
+  button: {
+    width: "100%",
+    maxWidth: 300,
+    height: 50,
     backgroundColor: "#007BFF",
-    padding: 12,
-    borderRadius: 6,
+    borderRadius: 8,
+    justifyContent: "center",
     alignItems: "center",
+    marginBottom: 15,
   },
-  saveButtonText: { color: "#fff", fontWeight: "bold" },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  linkText: {
+    color: "#007BFF",
+    fontSize: 14,
+    marginTop: 10,
+  },
 });
